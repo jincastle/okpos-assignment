@@ -121,36 +121,39 @@ class ProductViewSet(viewsets.ModelViewSet):
         try:
             pk = kwargs.get("pk")
             product = Product.objects.get(pk=pk)
-            name = request.data.get("name")
-            option_set = request.data.get("option_set", [])
-            tag_set = request.data.get("tag_set", [])
 
             # 트랜잭션으로 데이터 수정
             with transaction.atomic():
-                # 상품명 수정
-                if name is not None:
-                    product.name = name
+                # 상품명 부분 수정 (요청에 있을 때만)
+                if "name" in request.data:
+                    product.name = request.data["name"]
                     product.save()
 
-                # 기존 옵션과 태그 모두 제거
-                product.option_set.all().delete()
-                product.tag_set.clear()
+                # 옵션 부분 수정 (요청에 있을 때만)
+                if "option_set" in request.data:
+                    # 기존 옵션 모두 제거
+                    product.option_set.all().delete()
+                    
+                    # 새로운 옵션 생성
+                    for option_data in request.data["option_set"]:
+                        ProductOption.objects.create(
+                            product=product,
+                            name=option_data["name"],
+                            price=option_data["price"],
+                        )
 
-                # 새로운 옵션 생성
-                for option_data in option_set:
-                    ProductOption.objects.create(
-                        product=product,
-                        name=option_data["name"],
-                        price=option_data["price"],
-                    )
-
-                # 새로운 태그 처리
-                for tag_data in tag_set:
-                    if "pk" in tag_data:
-                        tag = Tag.objects.get(pk=tag_data["pk"])
-                    else:
-                        tag, created = Tag.objects.get_or_create(name=tag_data["name"])
-                    product.tag_set.add(tag)
+                # 태그 부분 수정 (요청에 있을 때만)
+                if "tag_set" in request.data:
+                    # 기존 태그 연결 모두 제거
+                    product.tag_set.clear()
+                    
+                    # 새로운 태그 처리
+                    for tag_data in request.data["tag_set"]:
+                        if "pk" in tag_data:
+                            tag = Tag.objects.get(pk=tag_data["pk"])
+                        else:
+                            tag, created = Tag.objects.get_or_create(name=tag_data["name"])
+                        product.tag_set.add(tag)
 
             # N+1 문제 해결
             product = (

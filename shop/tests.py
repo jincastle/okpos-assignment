@@ -185,15 +185,15 @@ class ProductUpdateAPITest(TestCase):
     def setUp(self):
         """테스트 데이터 설정"""
         self.client = APIClient()
-
+        
         # 기존 태그 생성
         self.exist_tag = Tag.objects.create(name="ExistTag")
         self.new_tag = Tag.objects.create(name="NewTag")
-
+        
         # 테스트 상품 생성
         self.product = Product.objects.create(name="OriginalProduct")
         self.product.tag_set.add(self.exist_tag)
-
+        
         # 테스트 옵션 생성
         self.option1 = ProductOption.objects.create(
             product=self.product, name="OriginalOption1", price=1000
@@ -206,7 +206,7 @@ class ProductUpdateAPITest(TestCase):
         )
 
     def test_update_product_success(self):
-        """상품 수정 API 성공 테스트"""
+        """상품 수정 API 성공 테스트 (전체 필드 수정)"""
 
         # 테스트 요청 데이터
         request_data = {
@@ -248,10 +248,86 @@ class ProductUpdateAPITest(TestCase):
         self.assertIn("NewTag", tag_names)
         self.assertIn("AnotherNewTag", tag_names)
 
+    def test_update_product_name_only(self):
+        """상품명만 수정하는 테스트"""
+
+        request_data = {"name": "OnlyNameChanged"}
+        url = reverse("product-detail", kwargs={"pk": self.product.pk})
+        response = self.client.patch(url, request_data, format="json")
+
+        # 성공 확인
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["name"], "OnlyNameChanged")
+        # 기존 옵션과 태그는 유지됨 (PATCH 방식)
+        self.assertEqual(len(response.data["option_set"]), 3)
+        self.assertEqual(len(response.data["tag_set"]), 1)
+
+    def test_update_product_options_only(self):
+        """옵션만 수정하는 테스트"""
+
+        request_data = {
+            "option_set": [
+                {"name": "NewOption1", "price": 500},
+                {"name": "NewOption2", "price": 1000},
+            ]
+        }
+        url = reverse("product-detail", kwargs={"pk": self.product.pk})
+        response = self.client.patch(url, request_data, format="json")
+
+        # 성공 확인
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["name"], "OriginalProduct")  # 기존 이름 유지
+        self.assertEqual(len(response.data["option_set"]), 2)  # 새 옵션 2개
+        self.assertEqual(len(response.data["tag_set"]), 1)  # 기존 태그 유지
+
+    def test_update_product_tags_only(self):
+        """태그만 수정하는 테스트"""
+
+        request_data = {
+            "tag_set": [
+                {"name": "NewTag1"},
+                {"name": "NewTag2"},
+            ]
+        }
+        url = reverse("product-detail", kwargs={"pk": self.product.pk})
+        response = self.client.patch(url, request_data, format="json")
+
+        # 성공 확인
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["name"], "OriginalProduct")  # 기존 이름 유지
+        self.assertEqual(len(response.data["option_set"]), 3)  # 기존 옵션 유지
+        self.assertEqual(len(response.data["tag_set"]), 2)  # 새 태그 2개
+
+    def test_update_product_remove_options(self):
+        """옵션을 빈 리스트로 초기화하는 테스트"""
+
+        request_data = {"option_set": []}
+        url = reverse("product-detail", kwargs={"pk": self.product.pk})
+        response = self.client.patch(url, request_data, format="json")
+
+        # 성공 확인
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["name"], "OriginalProduct")  # 기존 이름 유지
+        self.assertEqual(len(response.data["option_set"]), 0)  # 옵션 모두 삭제
+        self.assertEqual(len(response.data["tag_set"]), 1)  # 기존 태그 유지
+
+    def test_update_product_remove_tags(self):
+        """태그를 빈 리스트로 초기화하는 테스트"""
+
+        request_data = {"tag_set": []}
+        url = reverse("product-detail", kwargs={"pk": self.product.pk})
+        response = self.client.patch(url, request_data, format="json")
+
+        # 성공 확인
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["name"], "OriginalProduct")  # 기존 이름 유지
+        self.assertEqual(len(response.data["option_set"]), 3)  # 기존 옵션 유지
+        self.assertEqual(len(response.data["tag_set"]), 0)  # 태그 모두 삭제
+
     def test_update_product_not_found(self):
         """존재하지 않는 상품 수정 테스트"""
 
-        request_data = {"name": "UpdatedProduct", "option_set": [], "tag_set": []}
+        request_data = {"name": "UpdatedProduct"}
         url = reverse("product-detail", kwargs={"pk": 99999})
         response = self.client.patch(url, request_data, format="json")
 
@@ -264,9 +340,7 @@ class ProductUpdateAPITest(TestCase):
         """존재하지 않는 태그로 수정 테스트"""
 
         request_data = {
-            "name": "UpdatedProduct",
-            "option_set": [],
-            "tag_set": [{"pk": 99999, "name": "NonExistentTag"}],
+            "tag_set": [{"pk": 99999, "name": "NonExistentTag"}]
         }
         url = reverse("product-detail", kwargs={"pk": self.product.pk})
         response = self.client.patch(url, request_data, format="json")
@@ -277,12 +351,10 @@ class ProductUpdateAPITest(TestCase):
         self.assertEqual(response.data["message"], "태그를 찾을 수 없습니다.")
 
     def test_update_product_with_missing_fields(self):
-        """필수 필드가 누락된 경우 테스트"""
+        """옵션 필수 필드가 누락된 경우 테스트"""
 
         request_data = {
-            "name": "UpdatedProduct",
-            "option_set": [{"name": "OptionWithoutPrice"}],  # price 누락
-            "tag_set": [],
+            "option_set": [{"name": "OptionWithoutPrice"}]  # price 누락
         }
         url = reverse("product-detail", kwargs={"pk": self.product.pk})
         response = self.client.patch(url, request_data, format="json")
@@ -291,39 +363,6 @@ class ProductUpdateAPITest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("message", response.data)
         self.assertIn("필수 필드가 누락되었습니다", response.data["message"])
-
-    def test_update_product_remove_options(self):
-        """옵션 삭제 테스트"""
-
-        # 기존 3개 옵션에서 1개만 남기고 삭제
-        request_data = {
-            "name": "UpdatedProduct",
-            "option_set": [
-                {"pk": self.option1.pk, "name": "KeepThisOption", "price": 1000}
-            ],
-            "tag_set": [],
-        }
-        url = reverse("product-detail", kwargs={"pk": self.product.pk})
-        response = self.client.patch(url, request_data, format="json")
-
-        # 성공 확인
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["option_set"]), 1)
-        self.assertEqual(response.data["option_set"][0]["name"], "KeepThisOption")
-
-    def test_update_product_name_only(self):
-        """상품명만 수정하는 테스트"""
-
-        request_data = {"name": "OnlyNameChanged"}
-        url = reverse("product-detail", kwargs={"pk": self.product.pk})
-        response = self.client.patch(url, request_data, format="json")
-
-        # 성공 확인
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["name"], "OnlyNameChanged")
-        # 기존 옵션과 태그는 모두 삭제됨 (다 지우고 재생성 방식)
-        self.assertEqual(len(response.data["option_set"]), 0)
-        self.assertEqual(len(response.data["tag_set"]), 0)
 
 
 class ProductListAPITest(TestCase):
