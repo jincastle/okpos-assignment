@@ -1,5 +1,3 @@
-from django.db import models
-
 # shop/models.py
 from django.db import models
 
