@@ -185,15 +185,15 @@ class ProductUpdateAPITest(TestCase):
     def setUp(self):
         """테스트 데이터 설정"""
         self.client = APIClient()
-        
+
         # 기존 태그 생성
         self.exist_tag = Tag.objects.create(name="ExistTag")
         self.new_tag = Tag.objects.create(name="NewTag")
-        
+
         # 테스트 상품 생성
         self.product = Product.objects.create(name="OriginalProduct")
         self.product.tag_set.add(self.exist_tag)
-        
+
         # 테스트 옵션 생성
         self.option1 = ProductOption.objects.create(
             product=self.product, name="OriginalOption1", price=1000

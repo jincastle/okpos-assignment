@@ -8,7 +8,7 @@ from drf_yasg import openapi
 schema_view = get_schema_view(
     openapi.Info(
         title="OKPOS Assignment API",
-        default_version='v1',
+        default_version="v1",
         description="상품 관리 API 문서",
     ),
     public=True,
@@ -16,9 +16,10 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('shop/', include('shop.urls')),
-    
+    path("admin/", admin.site.urls),
+    path("shop/", include("shop.urls")),
     # API 문서화
-    path('doc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-swagger-ui'),
+    path(
+        "doc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-swagger-ui"
+    ),
 ]
