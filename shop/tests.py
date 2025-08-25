@@ -324,3 +324,200 @@ class ProductUpdateAPITest(TestCase):
         # 기존 옵션과 태그는 모두 삭제됨 (다 지우고 재생성 방식)
         self.assertEqual(len(response.data["option_set"]), 0)
         self.assertEqual(len(response.data["tag_set"]), 0)
+
+
+class ProductListAPITest(TestCase):
+    """상품 목록 조회 API 테스트"""
+
+    def setUp(self):
+        """테스트 데이터 설정"""
+        self.client = APIClient()
+        
+        # 기존 태그 생성
+        self.tag1 = Tag.objects.create(name="Tag1")
+        self.tag2 = Tag.objects.create(name="Tag2")
+        
+        # 테스트 상품 1 생성
+        self.product1 = Product.objects.create(name="Product1")
+        self.product1.tag_set.add(self.tag1)
+        
+        # 테스트 상품 1의 옵션 생성
+        self.option1_1 = ProductOption.objects.create(
+            product=self.product1, name="Option1_1", price=1000
+        )
+        self.option1_2 = ProductOption.objects.create(
+            product=self.product1, name="Option1_2", price=2000
+        )
+        
+        # 테스트 상품 2 생성 (옵션/태그 없음)
+        self.product2 = Product.objects.create(name="Product2")
+
+    def test_get_product_list_success(self):
+        """상품 목록 조회 성공 테스트"""
+
+        # API 요청
+        url = reverse("product-list")
+        response = self.client.get(url)
+
+        # 응답 상태 코드 확인
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # 응답 데이터 구조 확인
+        response_data = response.data
+        self.assertIsInstance(response_data, list)
+        self.assertEqual(len(response_data), 2)  # 상품 2개
+
+        # 첫 번째 상품 데이터 확인
+        product1_data = response_data[0]
+        self.assertIn("pk", product1_data)
+        self.assertIn("name", product1_data)
+        self.assertIn("option_set", product1_data)
+        self.assertIn("tag_set", product1_data)
+        self.assertEqual(product1_data["name"], "Product1")
+        self.assertEqual(len(product1_data["option_set"]), 2)
+        self.assertEqual(len(product1_data["tag_set"]), 1)
+
+        # 두 번째 상품 데이터 확인
+        product2_data = response_data[1]
+        self.assertEqual(product2_data["name"], "Product2")
+        self.assertEqual(len(product2_data["option_set"]), 0)
+        self.assertEqual(len(product2_data["tag_set"]), 0)
+
+    def test_get_empty_product_list(self):
+        """빈 상품 목록 조회 테스트"""
+
+        # 기존 상품 모두 삭제
+        Product.objects.all().delete()
+
+        # API 요청
+        url = reverse("product-list")
+        response = self.client.get(url)
+
+        # 응답 상태 코드 확인
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # 빈 배열 반환 확인
+        response_data = response.data
+        self.assertIsInstance(response_data, list)
+        self.assertEqual(len(response_data), 0)
+
+
+class ProductDetailAPITest(TestCase):
+    """상품 상세 조회 API 테스트"""
+
+    def setUp(self):
+        """테스트 데이터 설정"""
+        self.client = APIClient()
+        
+        # 기존 태그 생성
+        self.tag1 = Tag.objects.create(name="Tag1")
+        self.tag2 = Tag.objects.create(name="Tag2")
+        
+        # 테스트 상품 1 생성
+        self.product1 = Product.objects.create(name="Product1")
+        self.product1.tag_set.add(self.tag1)
+        
+        # 테스트 상품 1의 옵션 생성
+        self.option1_1 = ProductOption.objects.create(
+            product=self.product1, name="Option1_1", price=1000
+        )
+        self.option1_2 = ProductOption.objects.create(
+            product=self.product1, name="Option1_2", price=2000
+        )
+        
+        # 테스트 상품 2 생성 (옵션/태그 없음)
+        self.product2 = Product.objects.create(name="Product2")
+
+    def test_get_product_detail_success(self):
+        """상품 상세 조회 성공 테스트"""
+
+        # API 요청
+        url = reverse("product-detail", kwargs={"pk": self.product1.pk})
+        response = self.client.get(url)
+
+        # 응답 상태 코드 확인
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # 응답 데이터 구조 확인
+        response_data = response.data
+        self.assertIsInstance(response_data, dict)
+        self.assertIn("pk", response_data)
+        self.assertIn("name", response_data)
+        self.assertIn("option_set", response_data)
+        self.assertIn("tag_set", response_data)
+
+        # 상품 데이터 확인
+        self.assertEqual(response_data["name"], "Product1")
+        self.assertEqual(response_data["pk"], self.product1.pk)
+
+        # 옵션 데이터 확인
+        self.assertEqual(len(response_data["option_set"]), 2)
+        option_names = [opt["name"] for opt in response_data["option_set"]]
+        self.assertIn("Option1_1", option_names)
+        self.assertIn("Option1_2", option_names)
+
+        # 태그 데이터 확인
+        self.assertEqual(len(response_data["tag_set"]), 1)
+        self.assertEqual(response_data["tag_set"][0]["name"], "Tag1")
+
+    def test_get_product_detail_not_found(self):
+        """존재하지 않는 상품 상세 조회 테스트"""
+
+        # API 요청
+        url = reverse("product-detail", kwargs={"pk": 99999})
+        response = self.client.get(url)
+
+        # 404 Not Found 확인
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn("message", response.data)
+        self.assertEqual(response.data["message"], "상품을 찾을 수 없습니다.")
+
+    def test_get_product_with_options_only(self):
+        """옵션만 있는 상품 조회 테스트"""
+
+        # 옵션만 있는 상품 생성
+        product_with_options = Product.objects.create(name="ProductWithOptions")
+        ProductOption.objects.create(
+            product=product_with_options, name="OptionOnly", price=500
+        )
+
+        # API 요청
+        url = reverse("product-detail", kwargs={"pk": product_with_options.pk})
+        response = self.client.get(url)
+
+        # 응답 확인
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["name"], "ProductWithOptions")
+        self.assertEqual(len(response.data["option_set"]), 1)
+        self.assertEqual(len(response.data["tag_set"]), 0)
+
+    def test_get_product_with_tags_only(self):
+        """태그만 있는 상품 조회 테스트"""
+
+        # 태그만 있는 상품 생성
+        product_with_tags = Product.objects.create(name="ProductWithTags")
+        product_with_tags.tag_set.add(self.tag2)
+
+        # API 요청
+        url = reverse("product-detail", kwargs={"pk": product_with_tags.pk})
+        response = self.client.get(url)
+
+        # 응답 확인
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["name"], "ProductWithTags")
+        self.assertEqual(len(response.data["option_set"]), 0)
+        self.assertEqual(len(response.data["tag_set"]), 1)
+        self.assertEqual(response.data["tag_set"][0]["name"], "Tag2")
+
+    def test_get_product_without_options_and_tags(self):
+        """옵션과 태그가 없는 상품 조회 테스트"""
+
+        # API 요청
+        url = reverse("product-detail", kwargs={"pk": self.product2.pk})
+        response = self.client.get(url)
+
+        # 응답 확인
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["name"], "Product2")
+        self.assertEqual(len(response.data["option_set"]), 0)
+        self.assertEqual(len(response.data["tag_set"]), 0)
