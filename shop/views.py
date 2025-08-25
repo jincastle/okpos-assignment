@@ -10,7 +10,44 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     queryset = Product.objects.all()
     serializer_class = ProductCreateSerializer
-    http_method_names = ["post", "patch"]  # POST와 PATCH 허용
+    http_method_names = ['get', 'post', 'patch']  # GET, POST, PATCH 허용
+
+    # 상품 목록 조회 API
+    def list(self, request, *args, **kwargs):
+        try:
+            # 데이터 호출
+            products = (
+                Product.objects.select_related()
+                .prefetch_related("option_set", "tag_set")
+                .all()
+            )
+            
+            # 응답 데이터 생성
+            serializer = ProductCreateSerializer(products, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({"message": f"서버 오류가 발생했습니다: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # 상품 상세 조회 API
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            # 데이터 호출
+            pk = kwargs.get('pk')
+            product = (
+                Product.objects.select_related()
+                .prefetch_related("option_set", "tag_set")
+                .get(pk=pk)
+            )
+            
+            # 응답 데이터 생성
+            serializer = ProductCreateSerializer(product)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+        except Product.DoesNotExist:
+            return Response({"message": "상품을 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"message": f"서버 오류가 발생했습니다: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # 상품 생성 API
     def create(self, request, *args, **kwargs):
