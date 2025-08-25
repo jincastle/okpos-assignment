@@ -13,16 +13,28 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
-# Django 애플리케이션 정의
-INSTALLED_APPS = [
+# Django 기본 앱
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+]
+
+# 외부 라이브러리 앱
+THIRD_PARTY_APPS = [
     'rest_framework',
 ]
+
+# 프로젝트 앱
+PROJECT_APPS = [
+    'shop',
+]
+
+# 전체 앱 목록
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS
 
 # Django 미들웨어 설정
 MIDDLEWARE = [
