@@ -7,13 +7,12 @@ from shop.serializers import ProductCreateSerializer
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    """상품 생성을 위한 ViewSet"""
 
     queryset = Product.objects.all()
     serializer_class = ProductCreateSerializer
 
+    # 상품 생성 API
     def create(self, request, *args, **kwargs):
-        """상품 생성 API"""
         try:
             name = request.data.get("name")
             option_set = request.data.get("option_set", [])
