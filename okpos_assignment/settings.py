@@ -27,6 +27,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     "rest_framework",
     "drf_writable_nested",
+    "drf_yasg",
 ]
 
 # 프로젝트 앱

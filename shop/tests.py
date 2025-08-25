@@ -82,8 +82,8 @@ class ProductCreateAPITest(TestCase):
 
         # 400 Bad Request 확인
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("error", response.data)
-        self.assertEqual(response.data["error"], "상품명이 필요합니다.")
+        self.assertIn("message", response.data)
+        self.assertEqual(response.data["message"], "상품명이 필요합니다.")
 
     def test_create_product_with_empty_data(self):
         """빈 데이터로 상품 생성 테스트"""
