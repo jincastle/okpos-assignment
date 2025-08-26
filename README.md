@@ -1,23 +1,40 @@
 # OKPOS Assignment
 
-## 🚀 한 번에 실행하기
+## 실행 방법
 
+### 로컬 환경
 ```bash
-# 1. Python 버전 확인
-python --version
-
-# 2. 가상환경 생성 및 활성화
-python3 -m venv venv
+python -m venv venv
 source venv/bin/activate
-
-# 3. 패키지 설치
 pip install -r requirements.txt
-
-# 4. Django 실행
-python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver
-
-# 5. 브라우저에서 확인
-# http://127.0.0.1:8000/
 ```
+
+### Docker
+```bash
+docker build -t okpos-assignment .
+docker run -p 8000:8000 okpos-assignment
+```
+
+## 접속 URL
+- http://localhost:8000/shop/product/
+
+
+
+### 상품 목록 조회
+```bash
+curl http://localhost:8000/shop/product/
+```
+
+
+
+### 방법 2: 다중 컨테이너 (docker-compose)
+
+## 라이선스
+
+이 프로젝트는 면접 과제용으로 제작되었습니다.
+
+## 문의
+
+프로젝트 관련 문의사항이 있으시면 이슈를 생성해주세요.
