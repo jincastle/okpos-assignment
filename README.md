@@ -21,20 +21,3 @@ docker run -p 8000:8000 okpos-assignment
 - http://localhost:8000/shop/product/
 
 
-
-### 상품 목록 조회
-```bash
-curl http://localhost:8000/shop/product/
-```
-
-
-
-### 방법 2: 다중 컨테이너 (docker-compose)
-
-## 라이선스
-
-이 프로젝트는 면접 과제용으로 제작되었습니다.
-
-## 문의
-
-프로젝트 관련 문의사항이 있으시면 이슈를 생성해주세요.
