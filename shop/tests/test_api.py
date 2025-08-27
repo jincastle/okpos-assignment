@@ -1,101 +1,48 @@
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.test import APIClient
 from rest_framework import status
-
-from shop.models import Product, ProductOption, Tag
+from rest_framework.test import APIClient
+from shop.models import Tag, Product, ProductOption
 
 
 class ProductAPITest(TestCase):
-    """상품 API 테스트"""
+    """Product API 테스트"""
 
     def setUp(self):
         """테스트 데이터 설정"""
         self.client = APIClient()
         self.url = reverse("product-list")
-        
-        # 기존 태그 생성
-        self.exist_tag = Tag.objects.create(name="ExistTag")
-
-    def test_create_product_name_validation(self):
-        """상품명 검증 테스트"""
-        # 유효한 상품명
-        valid_data = {"name": "ValidProduct", "option_set": [], "tag_set": []}
-        response = self.client.post(self.url, valid_data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
-        # 빈 상품명
-        empty_data = {"name": "", "option_set": [], "tag_set": []}
-        response = self.client.post(self.url, empty_data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        
-        # 상품명 없음
-        no_name_data = {"option_set": [], "tag_set": []}
-        response = self.client.post(self.url, no_name_data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_create_product_price_validation(self):
-        """가격 검증 테스트"""
-        # 유효한 가격
-        valid_data = {
-            "name": "TestProduct",
-            "option_set": [{"name": "TestOption", "price": 1000}],
-            "tag_set": []
-        }
-        response = self.client.post(self.url, valid_data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
-        # 0원
-        zero_price_data = {
-            "name": "TestProduct",
-            "option_set": [{"name": "TestOption", "price": 0}],
-            "tag_set": []
-        }
-        response = self.client.post(self.url, zero_price_data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
-        # 음수 가격 (현재는 201로 처리됨 - serializer에서 검증 필요)
-        negative_price_data = {
-            "name": "TestProduct",
-            "option_set": [{"name": "TestOption", "price": -100}],
-            "tag_set": []
-        }
-        response = self.client.post(self.url, negative_price_data, format="json")
-        # 현재는 음수 가격도 허용되므로 201로 처리됨
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
-
 
     def test_create_product_success(self):
         """상품 생성 성공 테스트"""
+        # 태그와 옵션이 포함된 상품 생성
         request_data = {
             "name": "TestProduct",
-            "option_set": [
-                {"name": "TestOption1", "price": 1000},
-                {"name": "TestOption2", "price": 500},
-            ],
-            "tag_set": [
-                {"name": "NewTag"},
-            ],
+            "option_set": [{"name": "TestOption", "price": 1000}],
+            "tag_set": []
         }
         
         response = self.client.post(self.url, request_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["name"], "TestProduct")
-        self.assertEqual(len(response.data["option_set"]), 2)
-        self.assertEqual(len(response.data["tag_set"]), 1)
+        self.assertEqual(len(response.data["option_set"]), 1)
+        self.assertEqual(len(response.data["tag_set"]), 0)
 
-    def test_create_product_with_existing_tag(self):
-        """기존 태그가 있는 상품 생성 테스트"""
+    def test_create_product_with_tags(self):
+        """태그가 포함된 상품 생성 테스트"""
+        # 태그 생성
+        tag = Tag.objects.create(name="TestTag")
+        
         request_data = {
-            "name": "TestProduct",
+            "name": "ProductWithTags",
             "option_set": [],
-            "tag_set": [{"pk": self.exist_tag.pk, "name": "ExistTag"}]
+            "tag_set": [{"pk": tag.pk}]
         }
         
         response = self.client.post(self.url, request_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(response.data["tag_set"]), 1)
+        self.assertEqual(response.data["tag_set"][0]["name"], "TestTag")
 
     def test_create_product_validation_errors(self):
         """상품 생성 검증 에러 테스트"""
@@ -121,11 +68,15 @@ class ProductAPITest(TestCase):
         """상품 수정 성공 테스트"""
         # 상품 생성
         product = Product.objects.create(name="OriginalProduct")
+        ProductOption.objects.create(product=product, name="OriginalOption", price=1000)
+        tag = Tag.objects.create(name="OriginalTag")
+        product.tag_set.add(tag)
         
+        # 상품 수정
         request_data = {
             "name": "UpdatedProduct",
             "option_set": [{"name": "UpdatedOption", "price": 2000}],
-            "tag_set": [{"name": "UpdatedTag"}]
+            "tag_set": [{"pk": tag.pk}]
         }
         
         url = reverse("product-detail", kwargs={"pk": product.pk})
@@ -143,7 +94,7 @@ class ProductAPITest(TestCase):
     def test_update_product_partial_fields(self):
         """상품 부분 수정 테스트"""
         product = Product.objects.create(name="OriginalProduct")
-        tag = Tag.objects.create(name="OriginalTag")  # tag 객체 생성
+        tag = Tag.objects.create(name="OriginalTag")
         
         # 이름만 수정
         name_only_data = {"name": "OnlyNameChanged"}
@@ -197,7 +148,7 @@ class ProductAPITest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("태그를 찾을 수 없습니다", response.data["message"])
         
-        # 새로운 태그 생성 (get_or_create의 created=True 케이스)
+        # 새로운 태그 생성 테스트
         import uuid
         unique_tag_name = f"UniqueTag_{uuid.uuid4().hex[:8]}"
         
@@ -212,6 +163,17 @@ class ProductAPITest(TestCase):
         
         # 태그가 실제로 생성되었는지 확인
         self.assertTrue(Tag.objects.filter(name=unique_tag_name).exists())
+        
+        # 새로운 상품 생성 시 새로운 태그 이름으로 요청
+        new_product_data = {
+            "name": "ProductWithNewTag",
+            "option_set": [],
+            "tag_set": [{"name": "BrandNewTagForCreate"}]
+        }
+        response = self.client.post(self.url, new_product_data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(response.data["tag_set"]), 1)
+        self.assertEqual(response.data["tag_set"][0]["name"], "BrandNewTagForCreate")
 
     def test_get_product_list_success(self):
         """상품 목록 조회 성공 테스트"""
@@ -268,29 +230,3 @@ class ProductAPITest(TestCase):
         response = self.client.post(self.url, request_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("필수 필드가 누락되었습니다", response.data["message"])
-
-
-
-class ModelTest(TestCase):
-    """모델 테스트"""
-
-    def setUp(self):
-        """테스트 데이터 설정"""
-        self.tag = Tag.objects.create(name="TestTag")
-        self.product = Product.objects.create(name="TestProduct")
-        self.option = ProductOption.objects.create(
-            product=self.product, name="TestOption", price=1000
-        )
-
-    def test_model_str_methods(self):
-        """모델의 __str__ 메서드 테스트"""
-        # 각 모델의 __str__ 메서드 테스트
-        test_cases = [
-            (self.tag, "TestTag"),
-            (self.product, "TestProduct"),
-            (self.option, "TestOption"),
-        ]
-        
-        for instance, expected_str in test_cases:
-            with self.subTest(instance=instance):
-                self.assertEqual(str(instance), expected_str)

@@ -75,7 +75,7 @@ class ProductViewSet(viewsets.ModelViewSet):
                     if "pk" in tag_data:
                         tag = Tag.objects.get(pk=tag_data["pk"])
                     else:
-                        tag, created = Tag.objects.get_or_create(name=tag_data["name"])
+                        tag = Tag.objects.create(name=tag_data["name"])
                     product.tag_set.add(tag)
 
             # N+1 문제 해결
@@ -136,7 +136,7 @@ class ProductViewSet(viewsets.ModelViewSet):
                         if "pk" in tag_data:
                             tag = Tag.objects.get(pk=tag_data["pk"])
                         else:
-                            tag, _ = Tag.objects.get_or_create(name=tag_data["name"])
+                            tag = Tag.objects.create(name=tag_data["name"])
                         product.tag_set.add(tag)
 
             # N+1 문제 해결
