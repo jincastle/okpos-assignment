@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.shortcuts import render
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -15,7 +16,12 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
+def home(request):
+    """Django 기본 페이지"""
+    return render(request, 'home.html')
+
 urlpatterns = [
+    path("", home, name="home"),
     path("admin/", admin.site.urls),
     path("shop/", include("shop.urls")),
     # API 문서화
