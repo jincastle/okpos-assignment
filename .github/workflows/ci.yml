@@ -1,0 +1,38 @@
+name: Test and Coverage
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    # Python 3.8 환경 설정
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.8
+    
+    # 의존성 설치
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    # 테스트 실행 및 커버리지 측정
+    - name: Run tests with coverage
+      run: |
+        python manage.py migrate
+        python -m pytest --cov=shop --cov-report=xml --cov-report=term-missing
+    
+    # Codecov로 커버리지 결과 전송
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
