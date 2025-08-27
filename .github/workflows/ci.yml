@@ -29,4 +29,4 @@ jobs:
     - name: Run tests with coverage
       run: |
         python manage.py migrate
-        python -m pytest --cov=shop --cov-report=xml --cov-report=term-missing --cov-fail-under=100
+        python -m pytest --cov=shop --cov-report=xml --cov-report=term-missing --cov-fail-under=101
