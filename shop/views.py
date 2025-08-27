@@ -14,20 +14,16 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     # 상품 목록 조회 API
     def list(self, request, *args, **kwargs):
-        try:
-            # 데이터 호출
-            products = (
-                Product.objects.select_related()
-                .prefetch_related("option_set", "tag_set")
-                .all()
-            )
-            
-            # 응답 데이터 생성
-            serializer = ProductCreateSerializer(products, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-            
-        except Exception as e:
-            return Response({"message": f"서버 오류가 발생했습니다: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # 데이터 호출
+        products = (
+            Product.objects.select_related()
+            .prefetch_related("option_set", "tag_set")
+            .all()
+        )
+        
+        # 응답 데이터 생성
+        serializer = ProductCreateSerializer(products, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     # 상품 상세 조회 API
     def retrieve(self, request, *args, **kwargs):
@@ -46,8 +42,6 @@ class ProductViewSet(viewsets.ModelViewSet):
             
         except Product.DoesNotExist:
             return Response({"message": "상품을 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({"message": f"서버 오류가 발생했습니다: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # 상품 생성 API
     def create(self, request, *args, **kwargs):
@@ -105,16 +99,6 @@ class ProductViewSet(viewsets.ModelViewSet):
                 {"message": f"필수 필드가 누락되었습니다: {str(e)}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        except ValueError as e:
-            return Response(
-                {"message": f"잘못된 데이터 형식입니다: {str(e)}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        except Exception as e:
-            return Response(
-                {"message": f"서버 오류가 발생했습니다: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
 
     # 상품 수정 API
     def update(self, request, *args, **kwargs):
@@ -152,7 +136,7 @@ class ProductViewSet(viewsets.ModelViewSet):
                         if "pk" in tag_data:
                             tag = Tag.objects.get(pk=tag_data["pk"])
                         else:
-                            tag, created = Tag.objects.get_or_create(name=tag_data["name"])
+                            tag, _ = Tag.objects.get_or_create(name=tag_data["name"])
                         product.tag_set.add(tag)
 
             # N+1 문제 해결
@@ -176,18 +160,8 @@ class ProductViewSet(viewsets.ModelViewSet):
                 {"message": "태그를 찾을 수 없습니다."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        except KeyError as e:
-            return Response(
-                {"message": f"필수 필드가 누락되었습니다: {str(e)}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         except ValueError as e:
             return Response(
                 {"message": f"잘못된 데이터 형식입니다: {str(e)}"},
                 status=status.HTTP_400_BAD_REQUEST,
-            )
-        except Exception as e:
-            return Response(
-                {"message": f"서버 오류가 발생했습니다: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
