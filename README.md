@@ -13,8 +13,23 @@ python manage.py runserver
 
 ### Docker
 ```bash
+# Docker 이미지 빌드
 docker build -t okpos-assignment .
+
+# Docker 컨테이너 실행
 docker run -p 8000:8000 okpos-assignment
+
+# 백그라운드에서 실행하려면
+docker run -d -p 8000:8000 okpos-assignment
+
+# 컨테이너 중지
+docker stop <container_id>
+
+# 컨테이너 목록 확인
+docker ps
+
+# 컨테이너 로그 확인
+docker logs <container_id>
 ```
 
 ## 접속 URL
