@@ -4,10 +4,15 @@
 
 ### 로컬 환경
 ```bash
+# 가상환경 생성
 python -m venv venv
+# 가상환경 활성화
 source venv/bin/activate
+# 의존성 패키지 설치
 pip install -r requirements.txt
+# 데이터베이스 마이그레이션
 python manage.py migrate
+# 개발 서버 실행
 python manage.py runserver
 ```
 
