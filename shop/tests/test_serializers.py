@@ -1,6 +1,10 @@
 from django.test import TestCase
 from shop.models import Tag, Product, ProductOption
-from shop.serializers import TagSerializer, ProductOptionSerializer, ProductCreateSerializer
+from shop.serializers import (
+    TagSerializer,
+    ProductOptionSerializer,
+    ProductCreateSerializer,
+)
 
 
 class SerializerTest(TestCase):
@@ -29,7 +33,7 @@ class SerializerTest(TestCase):
         """ProductCreate 시리얼라이저 테스트"""
         # 태그와 옵션 연결
         self.product.tag_set.add(self.tag)
-        
+
         serializer = ProductCreateSerializer(self.product)
         self.assertEqual(serializer.data["name"], "TestProduct")
         self.assertEqual(len(serializer.data["tag_set"]), 1)

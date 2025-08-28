@@ -14,5 +14,5 @@ COPY . .
 # 포트 노출
 EXPOSE 8000
 
-# Django 마이그레이션 및 서버 실행
-CMD ["sh", "-c", "python manage.py makemigrations shop && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+# Django 마이그레이션, 테스트 데이터 설정 및 서버 실행
+CMD ["sh", "-c", "python manage.py makemigrations shop && python manage.py migrate && python manage.py setup_test_data && python manage.py runserver 0.0.0.0:8000"]
