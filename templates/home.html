@@ -1,25 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OKPOS Assignment</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            text-align: center; 
-            margin-top: 100px; 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        h1 { 
-            color: #333; 
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+        }
+        h1 {
+            color: #333;
             margin-bottom: 20px;
+            font-size: 2.5em;
         }
         p {
-            color: #28a745;
-            font-weight: bold;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .link {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            font-weight: 500;
+        }
+        .link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .api-link {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        .admin-link {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+        .doc-link {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
         }
     </style>
 </head>
 <body>
-    <h1>🚀 OKPOS Assignment</h1>
-    <p>Django 프로젝트가 성공적으로 실행되었습니다!</p>
+    <div class="container">
+        <h1>🚀 OKPOS Assignment</h1>
+        <p>
+            Django REST Framework를 사용한 상품 관리 API 서비스입니다.<br>
+            상품, 옵션, 태그를 관리할 수 있는 RESTful API를 제공합니다.
+        </p>
+        
+        <div class="links">
+            <a href="/shop/product/" class="link api-link">📦 Product API</a>
+            <a href="/doc/" class="link doc-link">📚 API 문서</a>
+            <a href="/admin/" class="link admin-link">⚙️ 관리자 페이지</a>
+        </div>
+        
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee;">
+            <p style="font-size: 0.9em; color: #999;">
+                Django 2.2.24 | DRF 3.12.4 | Python 3.8.18
+            </p>
+        </div>
+    </div>
 </body>
 </html>
