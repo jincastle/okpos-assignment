@@ -21,7 +21,7 @@ def home(request):
     return render(request, 'home.html')
 
 urlpatterns = [
-    path("/", home, name="home"),
+    path("", home, name="home"),
     path("admin/", admin.site.urls),
     path("shop/", include("shop.urls")),
     # API 문서화
