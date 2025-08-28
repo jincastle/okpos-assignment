@@ -16,9 +16,11 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
+
 def home(request):
     """Django 기본 페이지"""
-    return render(request, 'home.html')
+    return render(request, "home.html")
+
 
 urlpatterns = [
     path("", home, name="home"),

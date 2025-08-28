@@ -15,6 +15,9 @@ python manage.py migrate
 
 # 테스트 데이터 설정 (선택사항)
 python manage.py setup_test_data
+
+# 코드 포맷팅 (PEP8)
+black .
 # 개발 서버 실행
 python manage.py runserver
 ```
