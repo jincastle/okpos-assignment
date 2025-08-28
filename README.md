@@ -33,7 +33,7 @@ docker logs <container_id>
 ```
 
 ## 접속 URL
-- http://localhost:8000/shop/product/
+- http://localhost:8000/
 
 ## TEST
 
