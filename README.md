@@ -11,13 +11,8 @@ source venv/bin/activate
 # 의존성 패키지 설치
 pip install -r requirements.txt
 # 데이터베이스 마이그레이션
+python manage.py migrations
 python manage.py migrate
-
-# 테스트 데이터 설정 (선택사항)
-python manage.py setup_test_data
-
-# 코드 포맷팅 (PEP8)
-black .
 # 개발 서버 실행
 python manage.py runserver
 ```
