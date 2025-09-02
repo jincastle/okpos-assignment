@@ -4,21 +4,42 @@
 
 ### 로컬 환경
 ```bash
+# 가상환경 생성
 python -m venv venv
+# 가상환경 활성화
 source venv/bin/activate
+# 의존성 패키지 설치
 pip install -r requirements.txt
+# 데이터베이스 마이그레이션
+python manage.py makemigrations
 python manage.py migrate
+# 개발 서버 실행
 python manage.py runserver
 ```
 
 ### Docker
 ```bash
+# Docker 이미지 빌드
 docker build -t okpos-assignment .
+
+# Docker 컨테이너 실행
 docker run -p 8000:8000 okpos-assignment
+
+# 백그라운드에서 실행하려면
+docker run -d -p 8000:8000 okpos-assignment
+
+# 컨테이너 중지
+docker stop <container_id>
+
+# 컨테이너 목록 확인
+docker ps
+
+# 컨테이너 로그 확인
+docker logs <container_id>
 ```
 
 ## 접속 URL
-- http://localhost:8000/shop/product/
+- http://localhost:8000/
 
 ## TEST
 

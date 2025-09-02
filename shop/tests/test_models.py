@@ -21,7 +21,7 @@ class ModelTest(TestCase):
             (self.product, "TestProduct"),
             (self.option, "TestOption"),
         ]
-        
+
         for instance, expected_str in test_cases:
             with self.subTest(instance=instance):
                 self.assertEqual(str(instance), expected_str)
