@@ -16,8 +16,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         # 데이터 호출
         products = (
-            Product.objects.select_related()
-            .prefetch_related("option_set", "tag_set")
+            Product.objects.prefetch_related("option_set", "tag_set")
             .all()
         )
 
@@ -31,8 +30,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             # 데이터 호출
             pk = kwargs.get("pk")
             product = (
-                Product.objects.select_related()
-                .prefetch_related("option_set", "tag_set")
+                Product.objects.prefetch_related("option_set", "tag_set")
                 .get(pk=pk)
             )
 
@@ -147,8 +145,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
             # N+1 문제 해결
             product = (
-                Product.objects.select_related()
-                .prefetch_related("option_set", "tag_set")
+                Product.objects.prefetch_related("option_set", "tag_set")
                 .get(pk=product.pk)
             )
 
