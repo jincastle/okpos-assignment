@@ -20,6 +20,6 @@ urlpatterns = [
     path("shop/", include("shop.urls")),
     # API 문서화
     path(
-        "doc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-swagger-ui"
+        "doc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-doc-ui"
     ),
 ]
